@@ -1,0 +1,40 @@
+---
+title: "Meal Planner"
+format: 
+  dashboard:
+    orientation: columns
+---
+
+```{python}
+#| context: setup
+from shiny import render, reactive, ui
+```
+
+## Recipes {width=30%}
+```{python}
+#| title: Recipes
+from graph import list_recipes
+from itables import show
+
+show(list_recipes())
+```
+
+## List
+```{python}
+#| title: Grocery List
+# Create a checkbox list in markdown format
+from graph import generate_list
+df = generate_list()
+
+markdown_list = []
+for i, row in df.iterrows():
+    # print(row)
+    markdown_list.append(f"- {"[ ]"} {row['Quantity']} {row['Ingredient']}")
+
+# Output the markdown formatted list as a string
+markdown_output = "\n".join(markdown_list)
+
+from IPython.display import display, Markdown
+display(Markdown(markdown_output))
+
+```
