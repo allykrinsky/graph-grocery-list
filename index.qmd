@@ -3,38 +3,95 @@ title: "Meal Planner"
 format: 
   dashboard:
     orientation: columns
+server: shiny
 ---
+
+
 
 ```{python}
 #| context: setup
-from shiny import render, reactive, ui
+from shiny import reactive, render
+from shiny.express import ui
+# from shiny.express import input
+
 ```
 
-## Recipes {width=30%}
+
+
+## Add to List 
 ```{python}
 #| title: Recipes
-from graph import list_recipes
-from itables import show
-
-show(list_recipes())
-```
-
-## List
-```{python}
-#| title: Grocery List
-# Create a checkbox list in markdown format
+from graph import list_recipe_id, list_recipes
 from graph import generate_list
-df = generate_list()
 
-markdown_list = []
-for i, row in df.iterrows():
-    # print(row)
-    markdown_list.append(f"- {"[ ]"} {row['Quantity']} {row['Ingredient']}")
+options, list_ids = list_recipe_id()
 
-# Output the markdown formatted list as a string
-markdown_output = "\n".join(markdown_list)
+ui.input_checkbox_group(  
+    "select",  
+    "Select an option below:",  
+    options
+) 
 
-from IPython.display import display, Markdown
-display(Markdown(markdown_output))
+# ui.input_action_button("action_button", "Generate List")    
+
+@reactive.Calc
+def make_list():
+    return input.select()
+
+
+# ui.input_switch("show_slider", "Show slider", True)
 
 ```
+
+
+```{python}
+#| title: List
+# @render.data_frame
+# def test():
+
+#     ids = make_list()
+
+#     if len(ids) > 0 :
+#         recipes = []
+#         for i in ids:
+#             recipes.append(list_ids[int(i)])
+        
+#         df = generate_list(recipes)
+
+#         return render.DataTable(df) 
+     
+```
+
+## LIST
+```{python}
+#| title: Check List
+
+# ui.input_switch("show_slider", "Show slider", True)
+
+@render.express  
+def ui_slider():  
+
+    ids = make_list()
+    if len(ids) > 0 :
+        recipes = []
+        for i in ids:
+            recipes.append(list_ids[int(i)])
+        
+        df = generate_list(recipes)
+        df['result'] = df['Quantity'].astype(str) + ' ' + df['Ingredient']
+
+        ui.input_checkbox_group(  
+            "Check",  
+            "Select an option below:",  
+            df['result'].to_dict()
+        ) 
+
+       
+     
+```
+
+
+
+
+
+

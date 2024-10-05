@@ -4,7 +4,7 @@ from yfiles_jupyter_graphs import GraphWidget
 from typing import Union, Any
 import networkx as nx
 
-db = kuzu.Database("./final_db")
+db = kuzu.Database("./final_db",read_only=True)
 conn = kuzu.Connection(db)
 
 def custom_node_color_mapping(node: dict[str, Any]):
@@ -22,6 +22,27 @@ def get_graph():
     G = response.get_as_networkx(directed=False)
     
     return G
+
+def list_recipe_id():
+    response = conn.execute(
+            """
+            MATCH (n:Recipe)
+            RETURN n.name, n.display_name
+            """
+        )
+    options = {}
+    ids = {}
+    count = 0
+    while response.has_next():
+        rep = response.get_next()
+        options[count] = rep[1]
+        ids[count] = rep[0]
+        count +=1 
+        # meals[rep[0]] = rep[1]
+        # list.append([rep[0], rep[0]])
+
+    # return pd.DataFrame(list, columns=['Recipes'])
+    return options, ids
 
 
 def list_recipes():
@@ -56,15 +77,18 @@ def get_recipe(recipeName, conn):
 def get_recipes_from_input():
     pass
 
-def generate_list():
-    recipes = ["taco_bowl", "curry", "quinoa"]
-    # recipes = get_recipes_from_input()
+def generate_list(recipes):
+    # recipes = ["taco_bowl", "curry", "quinoa"]
 
+    print(recipes)
+    
     dfs = []
     for rec in recipes:
         dfs.append(get_recipe(rec, conn))
          
     result = pd.concat(dfs, ignore_index=True)
+ 
+    
     return pd.DataFrame(result.groupby("Ingredient")["Quantity"].count().reset_index(), index=None)
     
 
