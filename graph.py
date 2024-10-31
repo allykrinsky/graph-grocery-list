@@ -1,28 +1,84 @@
 import kuzu
-import pandas as pd
-from yfiles_jupyter_graphs import GraphWidget
-from typing import Union, Any
-import networkx as nx
 
-db = kuzu.Database("./final_db",read_only=True)
+db = kuzu.Database("./final_db", read_only=True)
 conn = kuzu.Connection(db)
 
-def custom_node_color_mapping(node: dict[str, Any]):
-    """let the color be orange or blue if the index is even or odd respectively"""
-    return ("#eb4934" if node['properties']['_label'] == "Recipe" else "#2456d4")
 
-
-def get_graph():
+# get nodes by name
+def find_node(name):
     response = conn.execute(
         """
-        MATCH (n)-[r:Contains]-(m)
-        RETURN *
+        MATCH (n)
+        WHERE n.name = $name
+        RETURN n.name, n.type
         """
-    )
-    G = response.get_as_networkx(directed=False)
-    
-    return G
+        , {"name" : name})
+    return response.get_as_df()
 
+
+# returns True if an edge exists between the 2 nodes
+def is_edge(recipe, ingredient):
+
+    response = conn.execute(
+        """
+        MATCH (n:Recipe)-[r:Contains]->(m:Ingredient)
+        WHERE n.name = $recipe AND m.name = $ingredient, 
+        RETURN m.name, n.name, r.quantity;
+        """, {"recipe" : recipe, "ingredient" : ingredient})
+    
+    return len(response.get_as_df()) > 0
+        
+
+# find all ingredients for a given recipe
+def find_edges(recipe):
+    response = conn.execute(
+        """
+        MATCH (n:Recipe)-[r:Contains]->(m:Ingredient)
+        WHERE n.name = $name
+        RETURN m.name, r.quantity;
+        """, {"name" : recipe})
+    
+    df = response.get_as_df()
+    df.columns = ['Ingredient', 'Quantity']
+
+    return df
+    
+
+
+
+
+# create new recipe nodes
+def insert_recipe(name, display_name, type):
+    conn.execute(
+        """
+        CREATE (u:Recipe {name : $name, display_name: $display_name, type: $type});
+        """
+        , {"name" : name, "display_name": display_name, "type": type})
+    
+
+# insert new ingredient nodes
+def insert_ingredient(name, display_name, type):
+    conn.execute(
+        """
+        CREATE (u:Ingredient {name : $name, display_name: $display_name, type: $type});
+        """
+        , {"name" : name, "display_name": display_name, "type": type})
+    
+
+# draw edge  between recipe and ingredient
+def create_relationship(recipe_name, ingredient_name, qty, label):
+
+    conn.execute(
+        """
+        MATCH (u1:Recipe), (u2:Ingredient)
+        WHERE u1.name = $recipe_name AND u2.name = $ingredient_name
+        CREATE (u1)-[r:Contains {quantity: $qty, label: $label}]->(u2)
+        RETURN r;
+        """,
+        {"recipe_name": recipe_name, "ingredient_name": ingredient_name, "qty": qty, "label":label}
+    )
+
+# list recipes with associated IDs
 def list_recipe_id():
     response = conn.execute(
             """
@@ -38,59 +94,17 @@ def list_recipe_id():
         options[count] = rep[1]
         ids[count] = rep[0]
         count +=1 
-        # meals[rep[0]] = rep[1]
-        # list.append([rep[0], rep[0]])
 
-    # return pd.DataFrame(list, columns=['Recipes'])
     return options, ids
 
 
-def list_recipes():
-    response = conn.execute(
-            """
-            MATCH (n:Recipe)
-            RETURN n.display_name
-            """
-        )
-    list = []
-    while response.has_next():
-        list.append(response.get_next()[0])
-
-    return pd.DataFrame(list, columns=['Recipes'])
-
-def get_recipe(recipeName, conn):
-
-    response = conn.execute(
-                f"""
-                MATCH (n:Ingredient)-[r:Contains]-(m:Recipe)
-                WHERE m.name = '{recipeName}'
-                RETURN n.display_name, r.quantity
-                """
-            )
-    list = []
-    while response.has_next():
-        list.append(response.get_next())
-
-    return pd.DataFrame(list, columns=['Ingredient', 'Quantity'])
-
-
-def get_recipes_from_input():
-    pass
-
-def generate_list(recipes):
-    # recipes = ["taco_bowl", "curry", "quinoa"]
-
-    print(recipes)
+# def get_graph():
+#     response = conn.execute(
+#         """
+#         MATCH (n)-[r:Contains]-(m)
+#         RETURN *
+#         """
+#     )
+#     G = response.get_as_networkx(directed=False)
     
-    dfs = []
-    for rec in recipes:
-        dfs.append(get_recipe(rec, conn))
-         
-    result = pd.concat(dfs, ignore_index=True)
- 
-    
-    return pd.DataFrame(result.groupby("Ingredient")["Quantity"].count().reset_index(), index=None)
-    
-
- 
-
+#     return G

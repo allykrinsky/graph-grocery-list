@@ -6,8 +6,6 @@ format:
 server: shiny
 ---
 
-
-
 ```{python}
 #| context: setup
 from shiny import reactive, render
@@ -16,13 +14,12 @@ from shiny.express import ui
 
 ```
 
-
-
+ 
 ## Add to List 
 ```{python}
 #| title: Recipes
-from graph import list_recipe_id, list_recipes
-from graph import generate_list
+from graph import list_recipe_id
+from helpers import generate_list
 
 options, list_ids = list_recipe_id()
 
@@ -30,43 +27,17 @@ ui.input_checkbox_group(
     "select",  
     "Select an option below:",  
     options
-) 
-
-# ui.input_action_button("action_button", "Generate List")    
+)    
 
 @reactive.Calc
 def make_list():
     return input.select()
 
-
-# ui.input_switch("show_slider", "Show slider", True)
-
-```
-
-
-```{python}
-#| title: List
-# @render.data_frame
-# def test():
-
-#     ids = make_list()
-
-#     if len(ids) > 0 :
-#         recipes = []
-#         for i in ids:
-#             recipes.append(list_ids[int(i)])
-        
-#         df = generate_list(recipes)
-
-#         return render.DataTable(df) 
-     
 ```
 
 ## LIST
 ```{python}
 #| title: Check List
-
-# ui.input_switch("show_slider", "Show slider", True)
 
 @render.express  
 def ui_slider():  
@@ -84,14 +55,73 @@ def ui_slider():
             "Check",  
             "Select an option below:",  
             df['result'].to_dict()
-        ) 
-
-       
+        )   
      
 ```
 
 
+```{python}
+#| title: Add New Recipe
 
+# from graph import add_full_recipe
 
+ui.input_text("name", "Recipe", placeholder="Recipe...") 
+ui.input_text("r_type", "Type", placeholder="Type...")
+# ui.input_text("qty", "Quantity", placeholder="Quantity...")
+# ui.input_text("ingredient", "Ingredients", placeholder="Ingredient...")
+# ui.input_text("location", "Location", placeholder="Location...")
 
+ui.input_action_button("submit", "Add")
 
+@reactive.Calc
+def add_recipe():
+    return input.submit()
+
+@render.express  
+def insert_recipe(): 
+
+    recipe = input.name()
+    r_type = input.r_type()
+    # ingredient = input.ingredient()
+    # location = input.location()
+    # qty = input.qty()
+    
+    f"Submitted: {input.submit()}" 
+
+    # if input.submit() > 0: # make this the type that knows if it changes
+    #     add_full_recipe(recipe, r_type, ingredient, location, qty)
+
+```
+
+```{python}
+#| title: Add Ingredients to Recipe
+
+from graph import insert_ingredient
+from helpers import normalize_name
+
+ui.input_text("name2", "Recipe", placeholder="Recipe...") # this should be from a drop down
+ui.input_text("qty2", "Quantity", placeholder="Quantity...")
+ui.input_text("ingredient2", "Ingredients", placeholder="Ingredient...") # this should also be from drop down
+ui.input_text("location2", "Location", placeholder="Location...")
+
+ui.input_action_button("submit2", "Add")
+
+@reactive.Calc
+def add_recipe():
+    return input.submit2()
+
+@render.express  
+def insert_ing(): 
+
+    recipe = input.name2()
+    ingredient = input.ingredient2()
+    location = input.location2()
+    qty = input.qty2()
+    
+    f"Submitted: {input.submit()}" 
+
+    # if input.submit() > 0: # make this the type that knows if it changes
+        # insert_ingredient(normalize_name(ingredient), ingredient, location)
+        # create_relationship(normalize_name(recipe), normalize_name(ingredient), qty.split()[0], qty.split()[1])
+
+```
