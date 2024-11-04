@@ -78,6 +78,15 @@ def create_relationship(recipe_name, ingredient_name, qty, label):
         {"recipe_name": recipe_name, "ingredient_name": ingredient_name, "qty": qty, "label":label}
     )
 
+def get_ingredients():
+    response = conn.execute(
+            """
+            MATCH (n:Ingredient)
+            RETURN n.display_name
+            """
+        )
+    return response.get_as_df()
+
 # list recipes with associated IDs
 def list_recipe_id():
     response = conn.execute(

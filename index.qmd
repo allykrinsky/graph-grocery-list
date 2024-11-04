@@ -4,6 +4,10 @@ format:
   dashboard:
     orientation: columns
 server: shiny
+theme: 
+  - cosmo
+  - assets/styles/custom.scss
+  - assets/styles/quarto.scss
 ---
 
 ```{python}
@@ -11,10 +15,12 @@ server: shiny
 from shiny import reactive, render
 from shiny.express import ui
 # from shiny.express import input
+from helpers import normalize_name
 
 ```
 
  
+# Grocery List
 ## Add to List 
 ```{python}
 #| title: Recipes
@@ -59,38 +65,39 @@ def ui_slider():
      
 ```
 
+# New Recipes
 
 ```{python}
 #| title: Add New Recipe
 
-# from graph import add_full_recipe
+from helpers import process_inputs
 
 ui.input_text("name", "Recipe", placeholder="Recipe...") 
 ui.input_text("r_type", "Type", placeholder="Type...")
-# ui.input_text("qty", "Quantity", placeholder="Quantity...")
-# ui.input_text("ingredient", "Ingredients", placeholder="Ingredient...")
-# ui.input_text("location", "Location", placeholder="Location...")
 
 ui.input_action_button("submit", "Add")
 
-@reactive.Calc
-def add_recipe():
-    return input.submit()
 
-@render.express  
-def insert_recipe(): 
+# def retreive_inputs():
+#     recipe = input.name()
+#     r_type = input.r_type()
 
-    recipe = input.name()
-    r_type = input.r_type()
-    # ingredient = input.ingredient()
-    # location = input.location()
-    # qty = input.qty()
+#     return recipe, r_type
+
+# @reactive.Calc
+# def sumbit_recipe():
+#     input.submit()
+#     return insert_recipe()
     
-    f"Submitted: {input.submit()}" 
+# @render.express
+# def insert_recipe():
 
-    # if input.submit() > 0: # make this the type that knows if it changes
-    #     add_full_recipe(recipe, r_type, ingredient, location, qty)
+#     recipe, r_type = retreive_inputs()
+#     id = normalize_name(recipe)
+#     # insert_recipe(id, recipe, r_type)
+#     f"Submitted: insert_recipe({recipe})"
 
+    
 ```
 
 ```{python}
@@ -111,8 +118,9 @@ def add_recipe():
     return input.submit2()
 
 @render.express  
-def insert_ing(): 
-
+def insert_ing():
+  
+    add_recipe()
     recipe = input.name2()
     ingredient = input.ingredient2()
     location = input.location2()

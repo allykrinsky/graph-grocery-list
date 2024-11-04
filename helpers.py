@@ -31,7 +31,9 @@ def generate_list(recipes):
     return pd.DataFrame(result.groupby("Ingredient")["Quantity"].count().reset_index(), index=None)
     
 
-
+def process_inputs(text1, text2):
+    # Example function that processes the inputs
+    return f"Processed: {text1} and {text2}"
 
 # def add_full_recipe(recipe, type, ingredient, location, qty):
 #     recipe_dict = {"name" : normalize_name(recipe), "display_name": recipe, "type": type}
