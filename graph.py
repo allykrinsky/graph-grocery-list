@@ -1,6 +1,6 @@
 import kuzu
 
-db = kuzu.Database("./final_db", read_only=True)
+db = kuzu.Database("./final_db")
 conn = kuzu.Connection(db)
 
 
@@ -35,7 +35,7 @@ def find_edges(recipe):
         """
         MATCH (n:Recipe)-[r:Contains]->(m:Ingredient)
         WHERE n.name = $name
-        RETURN m.name, r.quantity;
+        RETURN m.display_name, r.quantity;
         """, {"name" : recipe})
     
     df = response.get_as_df()
@@ -43,9 +43,6 @@ def find_edges(recipe):
 
     return df
     
-
-
-
 
 # create new recipe nodes
 def insert_recipe(name, display_name, type):
@@ -82,7 +79,16 @@ def get_ingredients():
     response = conn.execute(
             """
             MATCH (n:Ingredient)
-            RETURN n.display_name
+            RETURN n.display_name, n.name
+            """
+        )
+    return response.get_as_df()
+
+def list_recipes():
+    response = conn.execute(
+            """
+            MATCH (n:Recipe)
+            RETURN n.name, n.display_name
             """
         )
     return response.get_as_df()
