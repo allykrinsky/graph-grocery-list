@@ -75,6 +75,21 @@ def get_recipes_by_ingredient(name):
     print(response.get_as_df())
 
 
+def shopping_list_order(recipes):
+    response = conn.execute(
+        """
+        UNWIND $inputRecipes AS inputRecipeName
+        MATCH (n:Recipe {name: inputRecipeName})-[r]->(m:Ingredient)
+        RETURN m.display_name as ingredient, r.quantity as qty, r.label as label, m.type as location;
+        """, {"inputRecipes" : recipes})
+    
+    df = response.get_as_df()
+    # print(df)
+    # df.columns = ['Ingredient', 'Quantity']
+
+    return df
+
+
 #### CREATE ####
 
 # create new recipe nodes

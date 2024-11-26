@@ -1,5 +1,5 @@
 import streamlit as st
-from helpers import normalize_name, generate_list
+from helpers import normalize_name, generate_list, create_shopping_list, list_order
 from graph import insert_ingredient, insert_recipe, get_ingredients, find_node, list_recipes, create_relationship, get_similar_recipes
 import pandas as pd
 
@@ -7,7 +7,6 @@ import pandas as pd
 st.set_page_config(page_title="Meal Planner", layout="wide")
 
 recipes = list_recipes()
-print(recipes)
 recipe_names = list(recipes['n.display_name'])
 recipe_ids = list(recipes['n.name'])
 ingredients = get_ingredients()
@@ -16,19 +15,6 @@ counter = 1
 labels = {0: 'pack', 1: 'tsp', 2: 'tbsp', 3: 'cup', 4: 'piece', 5 : 'item'}
 
 st.header("Grocery List")
-
-if "selected_options" not in st.session_state:
-    st.session_state.selected_options = []
-
-
-def add_to_multiselect(item):
-    print(st.session_state.selected_options)
-    if item not in st.session_state.selected_options:
-        st.session_state.selected_options.append(item)
-    
-    print(st.session_state.selected_options)
-    print(selected_options)
-    print(item)
     
 
 selected_options = st.multiselect(
@@ -43,14 +29,17 @@ if selected_options:
     ids = [recipes.iloc[recipe_ids.index(i)]['n.display_name'] for i in recs]
     st.pills("You may also like...", ids[:3] , selection_mode="multi")
     
-    df = generate_list(selected_ids)
-    df["result"] = df["Quantity"].astype(str) + " " + df["Ingredient"]
+
     st.write("Check List")
-    for item in df["result"].to_list():
-        st.checkbox(item)
 
+    # generate list
+    list_df = create_shopping_list(selected_ids)
+    for row in list_df.iterrows():
+        qty = 1 if row[1]['qty'].strip() == 'eyeball' else row[1]['qty'].strip()
+        label = '' if row[1]['label'].strip() == 'na' else row[1]['label'].strip()
+        st.checkbox(str(qty) + " " + str(label) + " " + row[1]['ingredient'])
 
-            
+     
 with st.sidebar:
 
     st.header("Add Ingredients to Recipe")
@@ -85,7 +74,6 @@ with st.sidebar:
             })
             
 
-
     if st.button("Submit", type="primary"):
         recipe_name = recipes.iloc[recipe_names.index(recipe_select)]['n.name']
         for i in inputs:
@@ -108,7 +96,7 @@ with st.sidebar:
     # Modal to add a new ingredient
     with st.expander("Add New Ingredient"):
         ingredient_name = st.text_input("Ingredient Name")
-        location = st.text_input("Location")
+        location = st.selectbox("location", options=list_order, key="loc")
         if st.button("Add Ingredient"):
             id = normalize_name(ingredient_name)
             if len(find_node(id)) > 0:
