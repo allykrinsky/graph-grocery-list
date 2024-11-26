@@ -1,72 +1,96 @@
 import streamlit as st
-from helpers import normalize_name, process_inputs, generate_list
-from graph import list_recipe_id, insert_ingredient, insert_recipe, get_ingredients, find_node, list_recipes, create_relationship
+from helpers import normalize_name, generate_list
+from graph import insert_ingredient, insert_recipe, get_ingredients, find_node, list_recipes, create_relationship, get_similar_recipes
 import pandas as pd
 
 # Set up Streamlit page configuration
 st.set_page_config(page_title="Meal Planner", layout="wide")
 
-
-# TODO need to flip these 
-# Helper variables
-# list_ids = list_recipe_id()[1]
 recipes = list_recipes()
+print(recipes)
 recipe_names = list(recipes['n.display_name'])
+recipe_ids = list(recipes['n.name'])
 ingredients = get_ingredients()
 ingredient_names = list(ingredients['n.display_name'])
 counter = 1
-labels = {0: 'pack', 1: 'tsp', 2: 'tbsp', 3: 'cup', 4: 'piece'}
+labels = {0: 'pack', 1: 'tsp', 2: 'tbsp', 3: 'cup', 4: 'piece', 5 : 'item'}
 
-# Navigation tabs
-tab1, tab2 = st.tabs(["Grocery List", "New Recipes"])
+st.header("Grocery List")
 
-# Tab 1: Grocery List
-with tab1:
-    st.header("Grocery List")
-    selected_options = st.multiselect(
-        "Select an option below:", options=recipe_names, key="select"
-    )
+if "selected_options" not in st.session_state:
+    st.session_state.selected_options = []
 
-    # print(selected_options)
-    if selected_options:
-        
-        selected_ids = [recipes.iloc[recipe_names.index(option)]['n.name'] for option in selected_options]
-        # print('test')
-        # print(selected_ids)
-        df = generate_list(selected_ids)
-        df["result"] = df["Quantity"].astype(str) + " " + df["Ingredient"]
-        # st.checkbox("Check List")
-        # st.write(df["result"].to_list())
-        st.write("Check List")
-        for item in df["result"].to_list():
-            st.checkbox(item)
 
-# TODO fix the formatting of this page
-# Tab 2: New Recipes
-with tab2:
+def add_to_multiselect(item):
+    print(st.session_state.selected_options)
+    if item not in st.session_state.selected_options:
+        st.session_state.selected_options.append(item)
+    
+    print(st.session_state.selected_options)
+    print(selected_options)
+    print(item)
+    
+
+selected_options = st.multiselect(
+    "Select an option below:", options=recipe_names, key="select"
+)
+
+if selected_options:
+
+    selected_ids = [recipes.iloc[recipe_names.index(option)]['n.name'] for option in selected_options]
+    recs = get_similar_recipes(selected_ids)['recipe'].tolist()
+
+    ids = [recipes.iloc[recipe_ids.index(i)]['n.display_name'] for i in recs]
+    st.pills("You may also like...", ids[:3] , selection_mode="multi")
+    
+    df = generate_list(selected_ids)
+    df["result"] = df["Quantity"].astype(str) + " " + df["Ingredient"]
+    st.write("Check List")
+    for item in df["result"].to_list():
+        st.checkbox(item)
+
+
+            
+with st.sidebar:
+
     st.header("Add Ingredients to Recipe")
-    
-    # Dropdown to select recipes
     recipe_select = st.selectbox("Select a Recipe", options=recipe_names, key="recipe_select")
-    
-    # Dynamic ingredient input fields
-    if "ingredient_count" not in st.session_state:
-        st.session_state["ingredient_count"] = 1
-    
-    # if st.button("Add More"):
-    #     st.session_state["ingredient_count"] += 1
 
-    for i in range(st.session_state["ingredient_count"]):
-        qty = st.text_input(f"Quantity {i+1}", placeholder="Quantity...")
-        label = st.selectbox("Quantity Label", options=labels.values(), key=f"label{i+1}")
-        ing_name = st.selectbox("Select an Ingredient", options=ingredient_names, key=f"ing_sel{i+1}")
-        
-    
-    if st.button("Submit"):
+    with st.container():
+        col1, col2, col3 = st.columns(3)
+
+        # Dynamic ingredient input fields
+        if "ingredient_count" not in st.session_state:
+            st.session_state["ingredient_count"] = 1
+
+        if st.button("Add More", icon=":material/add:"):
+            st.session_state["ingredient_count"] += 1
+            st.write(st.session_state["ingredient_count"])
+
+        inputs = []
+        for i in range(st.session_state["ingredient_count"]):
+            with col1:
+                qty = st.number_input('Quantity', step=1, key=f"Quantity {i+1}",)
+
+            with col2:
+                label = st.selectbox("Label", options=labels.values(), key=f"label{i+1}")
+                
+            with col3:
+                ing_name = st.selectbox("Ingredient", options=ingredient_names, key=f"ing_sel{i+1}")
+
+            inputs.append({
+                "ing" : ingredients.iloc[ingredient_names.index(ing_name)]['n.name'],
+                "qty": qty,
+                "label" : label
+            })
+            
+
+
+    if st.button("Submit", type="primary"):
         recipe_name = recipes.iloc[recipe_names.index(recipe_select)]['n.name']
-        ingredient_name = ingredients.iloc[ingredient_names.index(ing_name)]['n.name']
-        create_relationship(recipe_name, ingredient_name, qty, label)
-        st.write(f"create_relationship({recipe_name}, {ingredient_name}, {qty}, {label})")
+        for i in inputs:
+            create_relationship(recipe_name, i['ing'], i['qty'], i['label'])
+            st.write(f"create_relationship({recipe_name}, {i['ing']}, {i['qty']}, {i['label']})")
 
 
     # Modal to add a new recipe
