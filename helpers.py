@@ -26,7 +26,7 @@ def normalize_name(name):
 # build the grocery list for all requested recipes
 def generate_list(recipes):
 
-    create_shopping_list(recipes)
+    # create_shopping_list(recipes)
     
     dfs = []
     for rec in recipes:
@@ -45,8 +45,6 @@ def create_shopping_list(recipes):
     df2 = df2[['qty', 'label', 'ingredient', 'location']]
     df2['sort_order'] = df2["location"].map((lambda x: list_order[x.strip()]))
     df_sorted = df2.sort_values(by="sort_order").drop(columns="sort_order")
-
-    # print(df_sorted)
 
     return df_sorted
 
