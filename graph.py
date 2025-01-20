@@ -3,7 +3,6 @@ import kuzu
 db = kuzu.Database("./final_db")
 conn = kuzu.Connection(db)
 
-
 ### GETS #####
 
 # get nodes by name

@@ -1,0 +1,12 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+# Environment variables
+.env
+# Virtual environment directories
+kuzu_env/
+
+# data folders
+archive/
+final_db/
