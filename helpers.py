@@ -21,7 +21,8 @@ def custom_node_color_mapping(node: dict[str, Any]):
     return ("#eb4934" if node['properties']['_label'] == "Recipe" else "#2456d4")
 
 def normalize_name(name):
-    return name.lower().replace(" ", "_")
+    # return name.lower().replace(" ", "_")
+    return name.lower().join("_")
 
 # build the grocery list for all requested recipes
 def generate_list(recipes):
@@ -37,9 +38,9 @@ def generate_list(recipes):
     return pd.DataFrame(result.groupby("Ingredient")["Quantity"].count().reset_index(), index=None)
 
 
-def create_shopping_list(recipes):
+def create_shopping_list(conn, recipes):
 
-    df = shopping_list_order(recipes)
+    df = shopping_list_order(conn, recipes)
 
     df2 = pd.DataFrame(df.groupby(by=["ingredient",'location', 'label'])["qty"].sum().reset_index(), index=None)
     df2 = df2[['qty', 'label', 'ingredient', 'location']]

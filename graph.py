@@ -1,12 +1,34 @@
 import kuzu
 
-db = kuzu.Database("./final_db")
-conn = kuzu.Connection(db)
+
+# TODO is there a setting for in memory vs saved
+def create_db(name="grocery_db"):
+    db = kuzu.Database(name)
+    conn = kuzu.Connection(db)
+
+    return conn
+
+
+def define_schemas(conn):
+    conn.execute("CREATE NODE TABLE Recipe(id STRING, name STRING, type STRING, vibe STRING, servings INT PRIMARY KEY (id))")
+    conn.execute("CREATE NODE TABLE Ingredient(id STRING, name STRING, location STRING, PRIMARY KEY (id))")
+    conn.execute("CREATE REL TABLE Contains(FROM Recipe TO Ingredient, quantity STRING, label STRING)")
+    conn.execute("CREATE REL TABLE UsedIn(FROM Ingredient TO Recipe)")
+
+def load_data(conn, table, df):
+    conn.execute(
+        """
+        COPY $table FROM $df
+        """,
+        {"table" : table, "df" : df}
+    )
+
+
 
 ### GETS #####
 
 # get nodes by name
-def find_node(name):
+def find_node(conn, name):
     response = conn.execute(
         """
         MATCH (n)
@@ -18,7 +40,7 @@ def find_node(name):
 
 
 # returns True if an edge exists between the 2 nodes
-def is_edge(recipe, ingredient):
+def is_edge(conn, recipe, ingredient):
 
     response = conn.execute(
         """
@@ -31,7 +53,7 @@ def is_edge(recipe, ingredient):
         
 
 # find all ingredients for a given recipe
-def find_edges(recipe):
+def find_edges(conn, recipe):
     response = conn.execute(
         """
         MATCH (n)-[r]->(m)
@@ -44,7 +66,7 @@ def find_edges(recipe):
 
     return df
 
-def get_ingredients():
+def get_ingredients(conn):
     response = conn.execute(
             """
             MATCH (n:Ingredient)
@@ -53,17 +75,17 @@ def get_ingredients():
         )
     return response.get_as_df()
 
-def list_recipes():
+def list_recipes(conn):
     response = conn.execute(
             """
             MATCH (n:Recipe)
-            RETURN n.name, n.display_name
+            RETURN n.name as id, n.display_name as name
             """
         )
     return response.get_as_df()
     
 
-def get_recipes_by_ingredient(name):
+def get_recipes_by_ingredient(conn, name):
     response = conn.execute(
         """
         MATCH (n:Ingredient)-[r:UsedIn]->(m:Recipe)
@@ -74,7 +96,7 @@ def get_recipes_by_ingredient(name):
     print(response.get_as_df())
 
 
-def shopping_list_order(recipes):
+def shopping_list_order(conn, recipes):
     response = conn.execute(
         """
         UNWIND $inputRecipes AS inputRecipeName
@@ -92,7 +114,7 @@ def shopping_list_order(recipes):
 #### CREATE ####
 
 # create new recipe nodes
-def insert_recipe(name, display_name, type):
+def insert_recipe(conn, name, display_name, type):
     conn.execute(
         """
         CREATE (u:Recipe {name : $name, display_name: $display_name, type: $type});
@@ -101,7 +123,7 @@ def insert_recipe(name, display_name, type):
     
 
 # insert new ingredient nodes
-def insert_ingredient(name, display_name, type):
+def insert_ingredient(conn, name, display_name, type):
     conn.execute(
         """
         CREATE (u:Ingredient {name : $name, display_name: $display_name, type: $type});
@@ -124,7 +146,7 @@ def create_relationship(recipe_name, ingredient_name, qty, label):
 
 #### DELTE ###
 
-def delete_node(name):
+def delete_node(conn, name):
     response = conn.execute(
         """
         MATCH (u) WHERE u.name = $name DETACH DELETE u;
@@ -133,7 +155,7 @@ def delete_node(name):
     print(response.get_as_df())
 
 
-def delete_relationship(recipe, ingredient):
+def delete_relationship(conn, recipe, ingredient):
     response = conn.execute(
         """
         MATCH (u:Recipe)-[f]->(u1:Ingredient)
@@ -145,7 +167,7 @@ def delete_relationship(recipe, ingredient):
 
 
 #### Recommendations ####
-def get_similar_recipes(names):
+def get_similar_recipes(conn, names):
     response = conn.execute(
         """
         UNWIND $inputRecipes AS inputRecipeName

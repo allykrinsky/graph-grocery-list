@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 # Environment variables
 .env
+.DS_Store
 # Virtual environment directories
 kuzu_env/
 
