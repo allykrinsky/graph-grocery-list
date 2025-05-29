@@ -51,5 +51,37 @@ def create_shopping_list(conn, recipes):
 
 
 
+def parse_ingredients(notion_data):
+
+    df = pd.DataFrame([
+        {
+            "id": val["id"],
+            "ingredient_name": val["properties"]["Name"]["title"][0]["plain_text"]
+                if val["properties"]["Name"]["title"] else None,
+            "aisle": val["properties"]["Aisle"]["select"]["name"]
+                if val["properties"]["Aisle"]["select"] else None,
+            "recipe_ids": [r["id"] for r in val["properties"]["Recipes"]["relation"]],
+        }
+        for val in notion_data["results"]
+    ])
+    ingredients = df.explode("recipe_ids")
+    ingredient_nodes = ingredients[['id', 'ingredient_name', 'aisle']].drop_duplicates()
+    contains = ingredients[["recipe_ids", 'id']].dropna()
+
+    return ingredient_nodes, contains
 
 
+def parse_recipe(notion_data):
+
+    recipes = pd.DataFrame([
+        {
+            "id": val["id"],
+            "recipe_name": val["properties"]["Name"]["title"][0]["plain_text"]
+                if val["properties"]["Name"]["title"] else None,
+            "type": val["properties"]["Type"]["select"]["name"]
+                if val["properties"]["Type"]["select"] else None,
+        }
+        for val in notion_data["results"]
+    ])
+
+    return recipes

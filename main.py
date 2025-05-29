@@ -1,5 +1,6 @@
 from notion import query_notion, create_df_from_notion
 from graph import create_db, define_schemas, load_data
+from helpers import parse_ingredients, parse_recipe
 import os 
 from dotenv import load_dotenv
 
@@ -29,7 +30,15 @@ if __name__ == "__main__":
 
     for db, db_id in databases.items():
         response = query_notion(db_id)
-        df = create_df_from_notion(response)
 
-        # load data into graph
-        load_data(conn, db, df)
+        if db == 'Recipe':
+            recipe_nodes = parse_recipe(response)
+            load_data(conn, "Recipe", recipe_nodes)
+        else:
+            ingredient_nodes, contains = parse_ingredients(response)
+            load_data(conn, "Ingredient", ingredient_nodes)
+            load_data(conn, "Contains", contains)
+            # load_data(conn, "UsedIn", used_in)
+
+
+    
