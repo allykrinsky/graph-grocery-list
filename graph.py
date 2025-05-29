@@ -13,7 +13,8 @@ def define_schemas(conn):
     conn.execute("CREATE NODE TABLE Recipe(id STRING, name STRING, type STRING, PRIMARY KEY (id))")
     # conn.execute("CREATE NODE TABLE Recipe(id STRING, name STRING, type STRING, vibe STRING, servings INT, cookTime STRING, PRIMARY KEY (id))")
     conn.execute("CREATE NODE TABLE Ingredient(id STRING, name STRING, location STRING, PRIMARY KEY (id))")
-    conn.execute("CREATE REL TABLE Contains(FROM Recipe TO Ingredient, quantity STRING, label STRING)")
+    conn.execute("CREATE REL TABLE Contains(FROM Recipe TO Ingredient)")
+    # conn.execute("CREATE REL TABLE Contains(FROM Recipe TO Ingredient, quantity STRING, label STRING)")
     conn.execute("CREATE REL TABLE UsedIn(FROM Ingredient TO Recipe)")
 
 def load_data(conn, table, df):

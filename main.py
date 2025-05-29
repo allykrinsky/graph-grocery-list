@@ -1,8 +1,10 @@
-from notion import query_notion, create_df_from_notion
+from notion import query_notion
 from graph import create_db, define_schemas, load_data
 from helpers import parse_ingredients, parse_recipe
 import os 
 from dotenv import load_dotenv
+from notion_client import Client
+import pandas as pd
 
 load_dotenv()
 
@@ -22,14 +24,14 @@ databases = {
 
 if __name__ == "__main__":
 
-
     # spin up graph
     conn = create_db()
     define_schemas(conn)
 
-
     for db, db_id in databases.items():
-        response = query_notion(db_id)
+
+        client = Client(auth=databases.get(db)['token'])
+        response = query_notion(client, db_id['ID'])
 
         if db == 'Recipe':
             recipe_nodes = parse_recipe(response)
@@ -41,4 +43,3 @@ if __name__ == "__main__":
             # load_data(conn, "UsedIn", used_in)
 
 
-    
