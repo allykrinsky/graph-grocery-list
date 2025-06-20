@@ -66,7 +66,7 @@ def parse_ingredients(notion_data):
     ])
     ingredients = df.explode("recipe_ids")
     ingredient_nodes = ingredients[['id', 'ingredient_name', 'aisle']].drop_duplicates()
-    contains = ingredients[["recipe_ids", 'id']].dropna()
+    contains = ingredients[["recipe_ids", 'id']].dropna().drop_duplicates()
 
     return ingredient_nodes, contains
 

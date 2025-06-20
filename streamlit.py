@@ -1,12 +1,16 @@
+from notion import pull_from_notion
 import streamlit as st
 from helpers import normalize_name, generate_list, create_shopping_list, list_order
-from graph import insert_ingredient, insert_recipe, get_ingredients, find_node, list_recipes, create_relationship, get_similar_recipes
+from graph import get_ingredients, list_recipes, get_similar_recipes, shopping_list_order
 import pandas as pd
 import kuzu
 
 # TODO replace this static with notion flow
-db = kuzu.Database("./final_db")
-conn = kuzu.Connection(db)
+# db = kuzu.Database("./final_db")
+# conn = kuzu.Connection(db)
+
+
+conn = pull_from_notion()
 
 # Set up Streamlit page configuration
 st.set_page_config(page_title="Meal Planner", layout="wide")
@@ -15,7 +19,7 @@ recipes = list_recipes(conn)
 recipe_names = list(recipes['name'])
 recipe_ids = list(recipes['id'])
 ingredients = get_ingredients(conn)
-ingredient_names = list(ingredients['n.display_name'])
+ingredient_names = list(ingredients['n.name'])
 counter = 1
 labels = {0: 'pack', 1: 'tsp', 2: 'tbsp', 3: 'cup', 4: 'piece', 5 : 'item'}
 dow = ['Sunday', 'Monday', 'Tuesaday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -56,30 +60,26 @@ with tab1:
 
         if selected_options:
 
-            selected_ids = [recipes.iloc[recipe_names.index(option)]['id'] for option in selected_options]
-            recs = get_similar_recipes(conn, selected_ids)['recipe'].tolist()
-
-            ids = [recipes.iloc[recipe_ids.index(i)]['name'] for i in recs]
-            st.pills("You may also like...", ids[:3] , selection_mode="multi")
+            # TODO fix the recommendation data flow
+            recs = get_similar_recipes(conn, selected_options)['recipe']
+            st.pills("You may also like...", recs[:3] , selection_mode="multi")
             
-
-            st.write("Check List")
-
             # generate list
-            list_df = create_shopping_list(conn, selected_ids)
-            for row in list_df.iterrows():
-                qty = 1 if row[1]['qty'].strip() == 'eyeball' else row[1]['qty'].strip()
-                label = '' if row[1]['label'].strip() == 'na' else row[1]['label'].strip()
-                st.checkbox(str(qty) + " " + str(label) + " " + row[1]['ingredient'])
+            st.write("Check List")
+            list_df = shopping_list_order(conn, selected_options)
+            counts = list_df.groupby("ingredient").count().reset_index()
+            counts.columns = ['ingredient', 'count']
+            for row in counts.iterrows():
+                st.checkbox(str(row[1]['count']) + ' ' + str(row[1]['ingredient']))
 
-    with manual_list:
+    # with manual_list:
        
-        new_item = st.text_input("Add More to the List")
-        if st.button('Add'):
-            st.session_state.manual_list.append(new_item)
+    #     new_item = st.text_input("Add More to the List")
+    #     if st.button('Add'):
+    #         st.session_state.manual_list.append(new_item)
 
-        for item in st.session_state.manual_list:
-                st.checkbox(item) 
+    #     for item in st.session_state.manual_list:
+    #             st.checkbox(item) 
         
 
 with tab2:

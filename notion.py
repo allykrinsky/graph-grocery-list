@@ -1,18 +1,46 @@
 import os
-# from notion_client import Client as NotionClient
-# from notion_client import Client
-# from dotenv import load_dotenv
-# from pprint import pprint
-# from helpers import normalize_name
+from notion_client import Client
+from helpers import parse_ingredients, parse_recipe
+from dotenv import load_dotenv
 import pandas as pd
+from graph import create_db, define_schemas, load_data, get_similar_recipes, list_recipes
 
-# # Load API keys from .env
-# load_dotenv()
-# NOTION_TOKEN = os.getenv("NOTION_TOKEN")
 
-# # TODO: register db & set up connections - i need to create 3-4 distinct dbs 
-# NOTION_DB_ID = os.getenv("NOTION_DB_ID")
-# # notion = Client(auth=NOTION_TOKEN)
+load_dotenv()
+databases = {
+    "Recipe" : {
+        "ID" : os.getenv("RECIPE_ID"),
+        "token": os.getenv("RECIPE_TOKEN")
+
+    },
+    "Ingredient" : {
+        "ID" : os.getenv("INGREDIENT_ID") ,
+        "token": os.getenv("INGREDIENT_TOKEN")
+
+    }
+}
+
+
+def pull_from_notion():
+    conn = create_db()
+    define_schemas(conn)
+
+    for db, db_id in databases.items():
+
+        client = Client(auth=databases.get(db)['token'])
+        response = query_notion(client, db_id['ID'])
+        print("Connected to Notion: " + db)
+
+        if db == 'Recipe':
+            recipe_nodes = parse_recipe(response)
+            load_data(conn, "Recipe", recipe_nodes)
+        else:
+            ingredient_nodes, contains = parse_ingredients(response)
+            load_data(conn, "Ingredient", ingredient_nodes)
+            load_data(conn, "Contains", contains)
+            load_data(conn, "UsedIn", contains[contains.columns[::-1]])
+
+    return conn
 
 # query notion based on which database i want
 def query_notion(client, db_id):

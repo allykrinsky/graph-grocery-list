@@ -1,5 +1,5 @@
 from notion import query_notion
-from graph import create_db, define_schemas, load_data
+from graph import create_db, define_schemas, load_data, get_similar_recipes, list_recipes
 from helpers import parse_ingredients, parse_recipe
 import os 
 from dotenv import load_dotenv
@@ -42,4 +42,8 @@ if __name__ == "__main__":
             load_data(conn, "Contains", contains)
             # load_data(conn, "UsedIn", used_in)
 
+    
+    print(list_recipes(conn))
 
+
+    # get_similar_recipes(conn)
