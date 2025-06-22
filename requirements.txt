@@ -4,3 +4,6 @@ notion_client
 yfiles_jupyter_graphs
 networkx
 dotenv
+st-chat-message
+streamlit-chat 
+crewai[tools]

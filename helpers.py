@@ -38,16 +38,16 @@ def generate_list(recipes):
     return pd.DataFrame(result.groupby("Ingredient")["Quantity"].count().reset_index(), index=None)
 
 
-def create_shopping_list(conn, recipes):
+# def create_shopping_list(conn, recipes):
 
-    df = shopping_list_order(conn, recipes)
+#     df = shopping_list_order(conn, recipes)
 
-    df2 = pd.DataFrame(df.groupby(by=["ingredient",'location', 'label'])["qty"].sum().reset_index(), index=None)
-    df2 = df2[['qty', 'label', 'ingredient', 'location']]
-    df2['sort_order'] = df2["location"].map((lambda x: list_order[x.strip()]))
-    df_sorted = df2.sort_values(by="sort_order").drop(columns="sort_order")
+#     # df2 = pd.DataFrame(df.groupby(by=["ingredient",'location', 'label'])["qty"].sum().reset_index(), index=None)
+#     # df2 = df2[['qty', 'label', 'ingredient', 'location']]
+#     # df2['sort_order'] = df2["location"].map((lambda x: list_order[x.strip()]))
+#     # df_sorted = df2.sort_values(by="sort_order").drop(columns="sort_order")
 
-    return df_sorted
+#     return df_sorted
 
 
 

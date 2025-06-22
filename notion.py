@@ -20,27 +20,50 @@ databases = {
     }
 }
 
+def set_up_graph(data):
 
-def pull_from_notion():
     conn = create_db()
     define_schemas(conn)
 
+    for db in databases.keys():
+
+        if db == 'Recipe':
+            recipe_nodes = parse_recipe(data[db])
+            load_data(conn, "Recipe", recipe_nodes)
+        else:
+            ingredient_nodes, contains = parse_ingredients(data[db])
+            load_data(conn, "Ingredient", ingredient_nodes)
+            load_data(conn, "Contains", contains)
+            load_data(conn, "UsedIn", contains[contains.columns[::-1]])
+
+    return conn
+
+
+def pull_from_notion():
+    # conn = create_db()
+    # define_schemas(conn)
+
+    data = {}
     for db, db_id in databases.items():
 
         client = Client(auth=databases.get(db)['token'])
         response = query_notion(client, db_id['ID'])
         print("Connected to Notion: " + db)
 
-        if db == 'Recipe':
-            recipe_nodes = parse_recipe(response)
-            load_data(conn, "Recipe", recipe_nodes)
-        else:
-            ingredient_nodes, contains = parse_ingredients(response)
-            load_data(conn, "Ingredient", ingredient_nodes)
-            load_data(conn, "Contains", contains)
-            load_data(conn, "UsedIn", contains[contains.columns[::-1]])
+        data[db] = response
+        
+    return data
 
-    return conn
+        # if db == 'Recipe':
+        #     recipe_nodes = parse_recipe(response)
+        #     load_data(conn, "Recipe", recipe_nodes)
+        # else:
+        #     ingredient_nodes, contains = parse_ingredients(response)
+        #     load_data(conn, "Ingredient", ingredient_nodes)
+        #     load_data(conn, "Contains", contains)
+        #     load_data(conn, "UsedIn", contains[contains.columns[::-1]])
+
+    # return conn
 
 # query notion based on which database i want
 def query_notion(client, db_id):
