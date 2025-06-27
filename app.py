@@ -1,10 +1,13 @@
+import pandas as pd
+# import kuzu
+import streamlit as st
+from streamlit_chat import message # type: ignore
+
 from notion import pull_from_notion, set_up_graph
 from helpers import normalize_name, generate_list, list_order
 from graph import get_ingredients, list_recipes, get_similar_recipes, shopping_list_order
-import pandas as pd
-import kuzu
-import streamlit as st
-from streamlit_chat import message # type: ignore
+
+from agent import crew
 
 # Set up Streamlit page configuration
 st.set_page_config(page_title="Meal Planner", layout="wide")
@@ -83,7 +86,10 @@ with tab3:
     def on_input_change():
         user_input = st.session_state.user_input
         st.session_state.past.append(user_input)
-        st.session_state.generated.append("The messages from Bot\nWith new line")
+
+        # trigger agent 
+        response = crew.kickoff()
+        st.session_state.generated.append(response)
 
     def on_btn_click():
         del st.session_state.past[:]

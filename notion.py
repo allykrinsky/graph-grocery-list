@@ -1,10 +1,11 @@
 import os
-from notion_client import Client
-from helpers import parse_ingredients, parse_recipe
 from dotenv import load_dotenv
-import pandas as pd
-from graph import create_db, define_schemas, load_data, get_similar_recipes, list_recipes
 
+from notion_client import Client
+import pandas as pd
+
+from graph import create_db, define_schemas, load_data, get_similar_recipes, list_recipes
+from helpers import parse_ingredients, parse_recipe
 
 load_dotenv()
 databases = {

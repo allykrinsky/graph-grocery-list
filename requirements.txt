@@ -6,4 +6,3 @@ networkx
 dotenv
 st-chat-message
 streamlit-chat 
-crewai[tools]
