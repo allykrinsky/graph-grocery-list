@@ -9,6 +9,9 @@ __pycache__/
 kuzu_env/
 venv/
 
+# Streamlit secrets (contains API keys)
+.streamlit/secrets.toml
+
 # data folders
 archive/
 final_db/

@@ -1,8 +1,6 @@
+streamlit
 pandas
 kuzu
-notion_client
-yfiles_jupyter_graphs
+notion-client
+python-dotenv
 networkx
-dotenv
-st-chat-message
-streamlit-chat 

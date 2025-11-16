@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+import streamlit as st
 
 from notion_client import Client
 import pandas as pd
@@ -8,15 +9,29 @@ from graph import create_db, define_schemas, load_data, get_similar_recipes, lis
 from helpers import parse_ingredients, parse_recipe
 
 load_dotenv()
+
+# Get secrets from Streamlit secrets (for deployment) or environment variables (for local dev)
+def get_secret(key):
+    """Get secret from st.secrets if available, otherwise from environment variables"""
+    try:
+        # Try to get from Streamlit secrets (for deployment)
+        return st.secrets[key]
+    except (FileNotFoundError, KeyError, Exception):
+        # If secrets.toml doesn't exist, key not found, or can't be read, fall back to env vars
+        pass
+
+    # Fall back to environment variables (for local development)
+    return os.getenv(key)
+
 databases = {
     "Recipe" : {
-        "ID" : os.getenv("RECIPE_SOURCE"),
-        "token": os.getenv("RECIPE_TOKEN")
+        "ID" : get_secret("RECIPE_SOURCE"),
+        "token": get_secret("RECIPE_TOKEN")
 
     },
     "Ingredient" : {
-        "ID" : os.getenv("INGREDIENT_SOURCE") ,
-        "token": os.getenv("INGREDIENT_TOKEN")
+        "ID" : get_secret("INGREDIENT_SOURCE"),
+        "token": get_secret("INGREDIENT_TOKEN")
 
     }
 }
