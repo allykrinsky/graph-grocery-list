@@ -1,20 +1,21 @@
 import os
-from notion_client import Client
-from helpers import parse_ingredients, parse_recipe
 from dotenv import load_dotenv
-import pandas as pd
-from graph import create_db, define_schemas, load_data, get_similar_recipes, list_recipes
 
+from notion_client import Client
+import pandas as pd
+
+from graph import create_db, define_schemas, load_data, get_similar_recipes, list_recipes
+from helpers import parse_ingredients, parse_recipe
 
 load_dotenv()
 databases = {
     "Recipe" : {
-        "ID" : os.getenv("RECIPE_ID"),
+        "ID" : os.getenv("RECIPE_SOURCE"),
         "token": os.getenv("RECIPE_TOKEN")
 
     },
     "Ingredient" : {
-        "ID" : os.getenv("INGREDIENT_ID") ,
+        "ID" : os.getenv("INGREDIENT_SOURCE") ,
         "token": os.getenv("INGREDIENT_TOKEN")
 
     }
@@ -67,8 +68,8 @@ def pull_from_notion():
 
 # query notion based on which database i want
 def query_notion(client, db_id):
-    return client.databases.query(
-        database_id=db_id,
+    return client.data_sources.query(
+        data_source_id=db_id,
         # filter={
         #     "and":[
         #         {
