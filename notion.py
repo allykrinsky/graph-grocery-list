@@ -83,21 +83,8 @@ def pull_from_notion():
 
 # query notion based on which database i want
 def query_notion(client, db_id):
-    return client.databases.query(
-        database_id=db_id,
-        # filter={
-        #     "and":[
-        #         {
-        #             "property": "Status",
-        #             "status": {
-        #                 "equals": "Posted"
-        #             }},
-        #         {
-        #             "property": "KB",
-        #             "checkbox" : {
-        #                 "equals" : True
-        #             }}]
-        # }
+    return client.data_sources.query(
+        data_source_id=db_id
     )
 
 # return DF with columns id, ingredient_name, aisle, recipe_ids
