@@ -8,6 +8,7 @@ __pycache__/
 # Virtual environment directories
 kuzu_env/
 venv/
+test/
 
 # Streamlit secrets (contains API keys)
 .streamlit/secrets.toml
