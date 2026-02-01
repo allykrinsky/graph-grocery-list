@@ -2,8 +2,9 @@
 python-dotenv
 pydantic
 pandas
-streamlit
+streamlit>=1.30.0
 notion-client
 crewai
 crewai-tools
 kuzu
+altair>=5.0.0
