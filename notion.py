@@ -5,7 +5,7 @@ import streamlit as st
 from notion_client import Client
 import pandas as pd
 
-from graph import create_db, define_schemas, load_data, get_similar_recipes, list_recipes
+from graph import create_db, define_schemas, load_data
 from helpers import parse_ingredients, parse_recipe
 
 load_dotenv()
@@ -69,17 +69,6 @@ def pull_from_notion():
         data[db] = response
         
     return data
-
-        # if db == 'Recipe':
-        #     recipe_nodes = parse_recipe(response)
-        #     load_data(conn, "Recipe", recipe_nodes)
-        # else:
-        #     ingredient_nodes, contains = parse_ingredients(response)
-        #     load_data(conn, "Ingredient", ingredient_nodes)
-        #     load_data(conn, "Contains", contains)
-        #     load_data(conn, "UsedIn", contains[contains.columns[::-1]])
-
-    # return conn
 
 # query notion based on which database i want
 def query_notion(client, db_id):

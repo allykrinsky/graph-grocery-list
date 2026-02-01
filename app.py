@@ -2,10 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from notion import pull_from_notion, set_up_graph
-from helpers import normalize_name, generate_list, list_order
 from graph import get_ingredients, list_recipes, get_similar_recipes, shopping_list_order
-
-# from agent import crew
 
 # Set up Streamlit page configuration
 st.set_page_config(page_title="Meal Planner", layout="wide")
@@ -85,7 +82,6 @@ def get_all_week_recipes():
     return list(set(all_recipes))  # Remove duplicates
 
 with tab1:
-    # st.subheader("Browse Meals")
 
     sidebar, main_content = st.columns([3, 2])
 

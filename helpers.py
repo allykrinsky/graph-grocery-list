@@ -1,8 +1,5 @@
-import kuzu
 import pandas as pd
-from yfiles_jupyter_graphs import GraphWidget
-from typing import Union, Any
-import networkx as nx
+from typing import Any
 from graph import find_edges, shopping_list_order
 
 list_order = {
@@ -36,19 +33,6 @@ def generate_list(recipes):
     result = pd.concat(dfs, ignore_index=True)
     
     return pd.DataFrame(result.groupby("Ingredient")["Quantity"].count().reset_index(), index=None)
-
-
-# def create_shopping_list(conn, recipes):
-
-#     df = shopping_list_order(conn, recipes)
-
-#     # df2 = pd.DataFrame(df.groupby(by=["ingredient",'location', 'label'])["qty"].sum().reset_index(), index=None)
-#     # df2 = df2[['qty', 'label', 'ingredient', 'location']]
-#     # df2['sort_order'] = df2["location"].map((lambda x: list_order[x.strip()]))
-#     # df_sorted = df2.sort_values(by="sort_order").drop(columns="sort_order")
-
-#     return df_sorted
-
 
 
 def parse_ingredients(notion_data):
